@@ -10,6 +10,7 @@ export default function BuddyFinderPage() {
   const supabase = createClient();
 
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState(null);
   const [postType, setPostType] = useState("training");
   const [posts, setPosts] = useState([]);
   const [cityFilter, setCityFilter] = useState("");
@@ -19,7 +20,7 @@ export default function BuddyFinderPage() {
       .from("buddy_posts")
       .select(
         `
-        id, message, city, created_at,
+        id, message, city, created_at, author_id,
         profiles ( display_name ),
         dogs ( name, photo_url, energy_level, recall_reliable )
       `
@@ -38,6 +39,7 @@ export default function BuddyFinderPage() {
         router.push("/login");
         return;
       }
+      setUserId(userData.user.id);
       await loadPosts(postType);
       setLoading(false);
     }
@@ -129,6 +131,18 @@ export default function BuddyFinderPage() {
                     : ""}
                 </div>
                 <div className="buddy-card-message">{post.message}</div>
+                {post.author_id !== userId && (
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    style={{ marginTop: 8, padding: "6px 14px", fontSize: 13 }}
+                    onClick={() =>
+                      router.push(`/start-conversation/${post.author_id}`)
+                    }
+                  >
+                    Message
+                  </button>
+                )}
               </div>
             </div>
           ))
@@ -137,6 +151,7 @@ export default function BuddyFinderPage() {
         <div className="top-nav" style={{ marginTop: 20 }}>
           <a href="/feed">Feed</a>
           <a href="/buddy-finder">Buddy Finder</a>
+          <a href="/messages">Messages</a>
           <a href="/profile">Your profile</a>
         </div>
       </div>
