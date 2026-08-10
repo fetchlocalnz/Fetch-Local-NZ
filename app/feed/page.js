@@ -78,14 +78,24 @@ export default function FeedPage() {
       <div className="auth-card" style={{ maxWidth: 460 }}>
         <Wordmark />
 
-        <button
-          className="btn-primary"
-          type="button"
-          onClick={() => router.push("/create-post")}
-          style={{ marginBottom: 18 }}
-        >
-          + New post
-        </button>
+        <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+          <button
+            className="btn-primary"
+            type="button"
+            onClick={() => router.push("/create-post")}
+            style={{ flex: 1 }}
+          >
+            + New post
+          </button>
+          <button
+            className="btn-secondary"
+            type="button"
+            onClick={loadPosts}
+            style={{ flex: "0 0 auto", padding: "10px 16px" }}
+          >
+            ↻
+          </button>
+        </div>
 
         {loading ? (
           <p>Loading feed...</p>
