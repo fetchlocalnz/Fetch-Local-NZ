@@ -81,14 +81,24 @@ export default function BuddyFinderPage() {
           </button>
         </div>
 
-        <button
-          className="btn-primary"
-          type="button"
-          onClick={() => router.push("/create-buddy-post")}
-          style={{ marginBottom: 14 }}
-        >
-          + Post a {postType === "training" ? "training" : "play"} request
-        </button>
+        <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+          <button
+            className="btn-primary"
+            type="button"
+            onClick={() => router.push("/create-buddy-post")}
+            style={{ flex: 1 }}
+          >
+            + Post a {postType === "training" ? "training" : "play"} request
+          </button>
+          <button
+            className="btn-secondary"
+            type="button"
+            onClick={() => loadPosts(postType)}
+            style={{ flex: "0 0 auto", padding: "10px 16px" }}
+          >
+            ↻
+          </button>
+        </div>
 
         <div className="field">
           <label htmlFor="cityFilter">Filter by city</label>
