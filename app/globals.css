@@ -261,3 +261,67 @@ a {
   border-color: var(--terracotta);
   color: var(--terracotta-deep);
 }
+
+.leash-toggle {
+  display: flex;
+  background: var(--navy-pale);
+  border-radius: 999px;
+  padding: 4px;
+  margin-bottom: 18px;
+}
+
+.leash-toggle button {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 10px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--navy);
+  cursor: pointer;
+}
+
+.leash-toggle button.active {
+  background: var(--olive);
+  color: #fff;
+}
+
+.buddy-card {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 14px;
+  background: var(--card);
+  display: flex;
+  gap: 12px;
+}
+
+.buddy-card img {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.buddy-card-body {
+  flex: 1;
+}
+
+.buddy-card-name {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.buddy-card-meta {
+  font-size: 12px;
+  color: var(--navy);
+  opacity: 0.8;
+  margin-bottom: 6px;
+}
+
+.buddy-card-message {
+  font-size: 13px;
+}
