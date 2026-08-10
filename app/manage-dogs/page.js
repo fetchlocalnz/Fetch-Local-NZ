@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../lib/supabase-browser";
+import { normalizePhotoFile } from "../../lib/photo-helpers";
 import Wordmark from "../components/Wordmark";
 
 function DogEditCard({ dog, userId, supabase, onSaved }) {
@@ -16,15 +17,24 @@ function DogEditCard({ dog, userId, supabase, onSaved }) {
   const [bio, setBio] = useState(dog.bio || "");
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(dog.photo_url || null);
+  const [convertingPhoto, setConvertingPhoto] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
 
-  function handlePhotoChange(e) {
+  async function handlePhotoChange(e) {
     const file = e.target.files[0];
     if (!file) return;
-    setPhotoFile(file);
-    setPhotoPreview(URL.createObjectURL(file));
+
+    setConvertingPhoto(true);
+    try {
+      const normalized = await normalizePhotoFile(file);
+      setPhotoFile(normalized);
+      setPhotoPreview(URL.createObjectURL(normalized));
+    } catch (err) {
+      setError("Couldn't process that photo — try a different one.");
+    }
+    setConvertingPhoto(false);
   }
 
   async function handleSave(e) {
@@ -107,6 +117,9 @@ function DogEditCard({ dog, userId, supabase, onSaved }) {
           />
         )}
         <input type="file" accept="image/*" onChange={handlePhotoChange} />
+        {convertingPhoto && (
+          <div className="helper-text">Processing photo...</div>
+        )}
       </div>
 
       <div className="field">
