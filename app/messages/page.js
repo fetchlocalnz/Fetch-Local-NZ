@@ -53,8 +53,10 @@ export default function MessagesPage() {
   return (
     <div className="auth-shell">
       <div className="auth-card" style={{ maxWidth: 460 }}>
-        <HamburgerMenu />
-        <Wordmark />
+        <div className="page-header">
+          <HamburgerMenu />
+          <Wordmark />
+        </div>
 
         {loading ? (
           <p>Loading messages...</p>
