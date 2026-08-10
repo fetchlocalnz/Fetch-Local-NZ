@@ -14,6 +14,7 @@ export default function FeedPage() {
   const [posts, setPosts] = useState([]);
   const [editingPostId, setEditingPostId] = useState(null);
   const [editText, setEditText] = useState("");
+  const [menuOpenId, setMenuOpenId] = useState(null);
 
   async function loadPosts() {
     const { data } = await supabase
@@ -44,7 +45,6 @@ export default function FeedPage() {
         .eq("id", userData.user.id)
         .single();
 
-      // First-time users without a completed profile go finish setup first.
       if (!profileData) {
         router.push("/onboarding");
         return;
@@ -59,7 +59,6 @@ export default function FeedPage() {
 
   async function toggleLike(post) {
     const alreadyLiked = post.likes.some((l) => l.user_id === userId);
-
     if (alreadyLiked) {
       await supabase
         .from("likes")
@@ -76,6 +75,7 @@ export default function FeedPage() {
   }
 
   async function handleDelete(postId) {
+    setMenuOpenId(null);
     const confirmed = window.confirm("Delete this post?");
     if (!confirmed) return;
     await supabase.from("posts").delete().eq("id", postId);
@@ -83,6 +83,7 @@ export default function FeedPage() {
   }
 
   function startEdit(post) {
+    setMenuOpenId(null);
     setEditingPostId(post.id);
     setEditText(post.caption || "");
   }
@@ -117,10 +118,10 @@ export default function FeedPage() {
             + New post
           </button>
           <button
-            className="btn-secondary"
+            className="icon-btn"
             type="button"
             onClick={loadPosts}
-            style={{ flex: "0 0 auto", padding: "10px 16px" }}
+            title="Refresh"
           >
             ↻
           </button>
@@ -133,15 +134,45 @@ export default function FeedPage() {
         ) : (
           posts.map((post) => {
             const liked = post.likes.some((l) => l.user_id === userId);
+            const isMine = post.author_id === userId;
             return (
               <div className="post-card" key={post.id}>
-                <div className="post-author">
-                  {post.profiles?.display_name || "Someone"}
-                  {post.profiles?.city ? ` — ${post.profiles.city}` : ""}
-                  {post.dogs?.name && (
-                    <span className="post-dog-tag">{post.dogs.name}</span>
+                <div className="post-card-header">
+                  <div className="post-author">
+                    {post.profiles?.display_name || "Someone"}
+                    {post.profiles?.city ? ` — ${post.profiles.city}` : ""}
+                    {post.dogs?.name && (
+                      <span className="post-dog-tag">{post.dogs.name}</span>
+                    )}
+                  </div>
+                  {isMine && (
+                    <div className="post-menu-wrap">
+                      <button
+                        type="button"
+                        className="post-menu-btn"
+                        onClick={() =>
+                          setMenuOpenId(menuOpenId === post.id ? null : post.id)
+                        }
+                      >
+                        ⋮
+                      </button>
+                      {menuOpenId === post.id && (
+                        <div className="post-menu-dropdown">
+                          <button type="button" onClick={() => startEdit(post)}>
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(post.id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
+
                 {post.photo_url && (
                   <img
                     src={post.photo_url}
@@ -149,9 +180,11 @@ export default function FeedPage() {
                     className="post-photo"
                   />
                 )}
+
                 {post.caption && editingPostId !== post.id && (
                   <div className="post-caption">{post.caption}</div>
                 )}
+
                 {editingPostId === post.id && (
                   <div className="field">
                     <textarea
@@ -179,6 +212,7 @@ export default function FeedPage() {
                     </div>
                   </div>
                 )}
+
                 <button
                   type="button"
                   className={`like-btn ${liked ? "liked" : ""}`}
@@ -186,34 +220,6 @@ export default function FeedPage() {
                 >
                   🐾 {liked ? "Liked" : "Like"} ({post.likes.length})
                 </button>
-                {post.author_id === userId && editingPostId !== post.id && (
-                  <>
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      style={{
-                        marginLeft: 8,
-                        padding: "6px 14px",
-                        fontSize: 13,
-                      }}
-                      onClick={() => startEdit(post)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      style={{
-                        marginLeft: 8,
-                        padding: "6px 14px",
-                        fontSize: 13,
-                      }}
-                      onClick={() => handleDelete(post.id)}
-                    >
-                      Delete
-                    </button>
-                  </>
-                )}
               </div>
             );
           })
