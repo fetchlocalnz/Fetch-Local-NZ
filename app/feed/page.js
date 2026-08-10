@@ -71,11 +71,26 @@ export default function FeedPage() {
               <label>{dogs.length === 1 ? "Your dog" : "Your dogs"}</label>
               {dogs.length === 0 && <p>No dog saved yet.</p>}
               {dogs.map((dog) => (
-                <p key={dog.id}>
-                  {dog.name} — {dog.breed || "breed not set"} —{" "}
-                  {dog.energy_level} energy —{" "}
-                  {dog.recall_reliable ? "reliable recall" : "stays on lead"}
-                </p>
+                <div key={dog.id} style={{ marginBottom: 10 }}>
+                  {dog.photo_url && (
+                    <img
+                      src={dog.photo_url}
+                      alt={dog.name}
+                      style={{
+                        width: "100%",
+                        maxHeight: 180,
+                        objectFit: "cover",
+                        borderRadius: 12,
+                        marginBottom: 6,
+                      }}
+                    />
+                  )}
+                  <p style={{ margin: 0 }}>
+                    {dog.name} — {dog.breed || "breed not set"} —{" "}
+                    {dog.energy_level} energy —{" "}
+                    {dog.recall_reliable ? "reliable recall" : "stays on lead"}
+                  </p>
+                </div>
               ))}
             </div>
             <button
