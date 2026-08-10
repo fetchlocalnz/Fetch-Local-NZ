@@ -122,7 +122,7 @@ export default function AddDogPage() {
       return;
     }
 
-    router.push("/feed");
+    router.push("/profile");
   }
 
   if (loading) {
@@ -155,7 +155,7 @@ export default function AddDogPage() {
           <button
             className="btn-secondary"
             type="button"
-            onClick={() => router.push("/feed")}
+            onClick={() => router.push("/profile")}
             style={{ marginTop: 10 }}
           >
             Back to profile
