@@ -10,11 +10,26 @@ export default function FeedPage() {
   const supabase = createClient();
 
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState(null);
-  const [dogs, setDogs] = useState([]);
+  const [userId, setUserId] = useState(null);
+  const [posts, setPosts] = useState([]);
+
+  async function loadPosts() {
+    const { data } = await supabase
+      .from("posts")
+      .select(
+        `
+        id, caption, photo_url, created_at,
+        profiles ( display_name, city ),
+        dogs ( name ),
+        likes ( user_id )
+      `
+      )
+      .order("created_at", { ascending: false });
+    setPosts(data || []);
+  }
 
   useEffect(() => {
-    async function load() {
+    async function init() {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData?.user) {
         router.push("/login");
@@ -27,96 +42,91 @@ export default function FeedPage() {
         .eq("id", userData.user.id)
         .single();
 
-      // If there's no profile yet (e.g. they confirmed their email in a
-      // fresh browser session and never finished the signup form),
-      // send them to onboarding instead of showing an empty feed.
+      // First-time users without a completed profile go finish setup first.
       if (!profileData) {
         router.push("/onboarding");
         return;
       }
 
-      const { data: dogsData } = await supabase
-        .from("dogs")
-        .select("*")
-        .eq("owner_id", userData.user.id);
-
-      setProfile(profileData);
-      setDogs(dogsData || []);
+      setUserId(userData.user.id);
+      await loadPosts();
       setLoading(false);
     }
-    load();
+    init();
   }, []);
 
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    router.push("/login");
+  async function toggleLike(post) {
+    const alreadyLiked = post.likes.some((l) => l.user_id === userId);
+
+    if (alreadyLiked) {
+      await supabase
+        .from("likes")
+        .delete()
+        .eq("post_id", post.id)
+        .eq("user_id", userId);
+    } else {
+      await supabase.from("likes").insert({
+        post_id: post.id,
+        user_id: userId,
+      });
+    }
+    await loadPosts();
   }
 
   return (
     <div className="auth-shell">
-      <div className="auth-card">
+      <div className="auth-card" style={{ maxWidth: 460 }}>
         <Wordmark />
+        <div className="top-nav">
+          <a href="/feed">Feed</a>
+          <a href="/profile">Your profile</a>
+        </div>
+
+        <button
+          className="btn-primary"
+          type="button"
+          onClick={() => router.push("/create-post")}
+          style={{ marginBottom: 18 }}
+        >
+          + New post
+        </button>
+
         {loading ? (
-          <p>Loading your profile...</p>
+          <p>Loading feed...</p>
+        ) : posts.length === 0 ? (
+          <p>No posts yet — be the first to share something!</p>
         ) : (
-          <>
-            <div className="success-box">
-              Your account is set up and connected to Supabase.
-            </div>
-            <div className="field">
-              <label>Owner</label>
-              <p>{profile?.display_name} — {profile?.city}</p>
-            </div>
-            <div className="field">
-              <label>{dogs.length === 1 ? "Your dog" : "Your dogs"}</label>
-              {dogs.length === 0 && <p>No dog saved yet.</p>}
-              {dogs.map((dog) => (
-                <div key={dog.id} style={{ marginBottom: 10 }}>
-                  {dog.photo_url && (
-                    <img
-                      src={dog.photo_url}
-                      alt={dog.name}
-                      style={{
-                        width: "100%",
-                        maxHeight: 180,
-                        objectFit: "cover",
-                        borderRadius: 12,
-                        marginBottom: 6,
-                      }}
-                    />
+          posts.map((post) => {
+            const liked = post.likes.some((l) => l.user_id === userId);
+            return (
+              <div className="post-card" key={post.id}>
+                <div className="post-author">
+                  {post.profiles?.display_name || "Someone"}
+                  {post.profiles?.city ? ` — ${post.profiles.city}` : ""}
+                  {post.dogs?.name && (
+                    <span className="post-dog-tag">{post.dogs.name}</span>
                   )}
-                  <p style={{ margin: 0 }}>
-                    {dog.name} — {dog.breed || "breed not set"} —{" "}
-                    {dog.energy_level} energy —{" "}
-                    {dog.recall_reliable ? "reliable recall" : "stays on lead"}
-                  </p>
                 </div>
-              ))}
-            </div>
-            <button
-              className="btn-secondary"
-              type="button"
-              onClick={() => router.push("/add-dog")}
-              style={{ marginBottom: 10 }}
-            >
-              Add another dog
-            </button>
-            <button
-              className="btn-secondary"
-              type="button"
-              onClick={() => router.push("/manage-dogs")}
-              style={{ marginBottom: 12 }}
-            >
-              Edit your dogs / add photos
-            </button>
-            <div className="helper-text">
-              This is a placeholder — the real social feed and buddy finder
-              get built next.
-            </div>
-            <button className="btn-secondary" type="button" onClick={handleLogout}>
-              Log out
-            </button>
-          </>
+                {post.photo_url && (
+                  <img
+                    src={post.photo_url}
+                    alt="Post"
+                    className="post-photo"
+                  />
+                )}
+                {post.caption && (
+                  <div className="post-caption">{post.caption}</div>
+                )}
+                <button
+                  type="button"
+                  className={`like-btn ${liked ? "liked" : ""}`}
+                  onClick={() => toggleLike(post)}
+                >
+                  🐾 {liked ? "Liked" : "Like"} ({post.likes.length})
+                </button>
+              </div>
+            );
+          })
         )}
       </div>
     </div>
