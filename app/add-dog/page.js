@@ -24,6 +24,15 @@ export default function AddDogPage() {
   const [energyLevel, setEnergyLevel] = useState("medium");
   const [recallReliable, setRecallReliable] = useState("yes");
   const [bio, setBio] = useState("");
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+
+  function handlePhotoChange(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  }
 
   useEffect(() => {
     async function load() {
@@ -64,6 +73,28 @@ export default function AddDogPage() {
     }
 
     setSaving(true);
+
+    let photoUrl = null;
+    if (photoFile) {
+      const fileExt = photoFile.name.split(".").pop();
+      const filePath = `${userId}/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("dog-photos")
+        .upload(filePath, photoFile);
+
+      if (uploadError) {
+        setSaving(false);
+        setError("Photo upload failed: " + uploadError.message);
+        return;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from("dog-photos")
+        .getPublicUrl(filePath);
+      photoUrl = publicUrlData.publicUrl;
+    }
+
     const { error: dogError } = await supabase.from("dogs").insert({
       owner_id: userId,
       name: dogName,
@@ -72,6 +103,7 @@ export default function AddDogPage() {
       energy_level: energyLevel,
       recall_reliable: recallReliable === "yes",
       bio: bio || null,
+      photo_url: photoUrl,
     });
     setSaving(false);
 
@@ -129,6 +161,28 @@ export default function AddDogPage() {
         <Wordmark />
         <form onSubmit={handleSubmit}>
           {error && <div className="error-box">{error}</div>}
+          <div className="field">
+            <label htmlFor="photo">Photo (optional)</label>
+            {photoPreview && (
+              <img
+                src={photoPreview}
+                alt="Preview"
+                style={{
+                  width: "100%",
+                  maxHeight: 180,
+                  objectFit: "cover",
+                  borderRadius: 12,
+                  marginBottom: 10,
+                }}
+              />
+            )}
+            <input
+              id="photo"
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoChange}
+            />
+          </div>
           <div className="field">
             <label htmlFor="dogName">Dog's name</label>
             <input
