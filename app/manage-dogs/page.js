@@ -243,7 +243,7 @@ export default function ManageDogsPage() {
             <button
               className="btn-secondary"
               type="button"
-              onClick={() => router.push("/feed")}
+              onClick={() => router.push("/profile")}
             >
               Back to profile
             </button>
