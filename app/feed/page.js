@@ -128,6 +128,7 @@ export default function FeedPage() {
         <div className="top-nav" style={{ marginTop: 20 }}>
           <a href="/feed">Feed</a>
           <a href="/buddy-finder">Buddy Finder</a>
+          <a href="/messages">Messages</a>
           <a href="/profile">Your profile</a>
         </div>
       </div>
