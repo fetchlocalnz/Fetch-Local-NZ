@@ -100,6 +100,15 @@ export default function ConversationPage() {
               <p style={{ fontWeight: 700 }}>{otherName}</p>
             </div>
 
+            <button
+              type="button"
+              className="btn-secondary"
+              style={{ marginBottom: 10, padding: "6px 14px", fontSize: 13 }}
+              onClick={loadMessages}
+            >
+              ↻ Refresh
+            </button>
+
             <div className="message-thread">
               {messages.length === 0 && (
                 <p style={{ fontSize: 14 }}>
