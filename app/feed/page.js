@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../lib/supabase-browser";
 import Wordmark from "../components/Wordmark";
+import HamburgerMenu from "../components/HamburgerMenu";
 
 export default function FeedPage() {
   const router = useRouter();
@@ -106,6 +107,7 @@ export default function FeedPage() {
   return (
     <div className="auth-shell">
       <div className="auth-card" style={{ maxWidth: 460 }}>
+        <HamburgerMenu />
         <Wordmark />
 
         <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
@@ -229,7 +231,6 @@ export default function FeedPage() {
           <a href="/feed">Feed</a>
           <a href="/buddy-finder">Buddy Finder</a>
           <a href="/messages">Messages</a>
-          <a href="/profile">Your profile</a>
         </div>
       </div>
     </div>
