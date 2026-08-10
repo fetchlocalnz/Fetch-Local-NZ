@@ -78,6 +78,14 @@ export default function FeedPage() {
                 </p>
               ))}
             </div>
+            <button
+              className="btn-secondary"
+              type="button"
+              onClick={() => router.push("/add-dog")}
+              style={{ marginBottom: 12 }}
+            >
+              Add another dog
+            </button>
             <div className="helper-text">
               This is a placeholder — the real social feed and buddy finder
               get built next.
