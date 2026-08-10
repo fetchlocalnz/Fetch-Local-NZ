@@ -1,0 +1,145 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "../../lib/supabase-browser";
+import Wordmark from "../components/Wordmark";
+
+export default function BuddyFinderPage() {
+  const router = useRouter();
+  const supabase = createClient();
+
+  const [loading, setLoading] = useState(true);
+  const [postType, setPostType] = useState("training");
+  const [posts, setPosts] = useState([]);
+  const [cityFilter, setCityFilter] = useState("");
+
+  async function loadPosts(type) {
+    let query = supabase
+      .from("buddy_posts")
+      .select(
+        `
+        id, message, city, created_at,
+        profiles ( display_name ),
+        dogs ( name, photo_url, energy_level, recall_reliable )
+      `
+      )
+      .eq("post_type", type)
+      .order("created_at", { ascending: false });
+
+    const { data } = await query;
+    setPosts(data || []);
+  }
+
+  useEffect(() => {
+    async function init() {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user) {
+        router.push("/login");
+        return;
+      }
+      await loadPosts(postType);
+      setLoading(false);
+    }
+    init();
+  }, []);
+
+  async function handleToggle(type) {
+    setPostType(type);
+    setLoading(true);
+    await loadPosts(type);
+    setLoading(false);
+  }
+
+  const filteredPosts = cityFilter
+    ? posts.filter((p) =>
+        p.city.toLowerCase().includes(cityFilter.toLowerCase())
+      )
+    : posts;
+
+  return (
+    <div className="auth-shell">
+      <div className="auth-card" style={{ maxWidth: 460 }}>
+        <Wordmark />
+
+        <div className="leash-toggle">
+          <button
+            type="button"
+            className={postType === "training" ? "active" : ""}
+            onClick={() => handleToggle("training")}
+          >
+            Training
+          </button>
+          <button
+            type="button"
+            className={postType === "play" ? "active" : ""}
+            onClick={() => handleToggle("play")}
+          >
+            Play
+          </button>
+        </div>
+
+        <button
+          className="btn-primary"
+          type="button"
+          onClick={() => router.push("/create-buddy-post")}
+          style={{ marginBottom: 14 }}
+        >
+          + Post a {postType === "training" ? "training" : "play"} request
+        </button>
+
+        <div className="field">
+          <label htmlFor="cityFilter">Filter by city</label>
+          <input
+            id="cityFilter"
+            type="text"
+            value={cityFilter}
+            onChange={(e) => setCityFilter(e.target.value)}
+            placeholder="e.g. Christchurch"
+          />
+        </div>
+
+        {loading ? (
+          <p>Loading...</p>
+        ) : filteredPosts.length === 0 ? (
+          <p>
+            No {postType} posts {cityFilter ? "in that area " : ""}yet — be
+            the first!
+          </p>
+        ) : (
+          filteredPosts.map((post) => (
+            <div className="buddy-card" key={post.id}>
+              {post.dogs?.photo_url && (
+                <img src={post.dogs.photo_url} alt={post.dogs.name} />
+              )}
+              <div className="buddy-card-body">
+                <div className="buddy-card-name">
+                  {post.dogs?.name || "A dog"} —{" "}
+                  {post.profiles?.display_name || "Someone"}
+                </div>
+                <div className="buddy-card-meta">
+                  {post.city}
+                  {post.dogs?.energy_level
+                    ? ` • ${post.dogs.energy_level} energy`
+                    : ""}
+                  {post.dogs?.recall_reliable !== undefined
+                    ? post.dogs.recall_reliable
+                      ? " • reliable recall"
+                      : " • stays on lead"
+                    : ""}
+                </div>
+                <div className="buddy-card-message">{post.message}</div>
+              </div>
+            </div>
+          ))
+        )}
+
+        <div className="top-nav" style={{ marginTop: 20 }}>
+          <a href="/feed">Feed</a>
+          <a href="/buddy-finder">Buddy Finder</a>
+          <a href="/profile">Your profile</a>
+        </div>
+      </div>
+    </div>
+  );
+}
