@@ -14,9 +14,12 @@ export default function BuddyFinderPage() {
   const [postType, setPostType] = useState("training");
   const [posts, setPosts] = useState([]);
   const [cityFilter, setCityFilter] = useState("");
+  const [menuOpenId, setMenuOpenId] = useState(null);
+  const [editingPostId, setEditingPostId] = useState(null);
+  const [editText, setEditText] = useState("");
 
   async function loadPosts(type) {
-    let query = supabase
+    const { data } = await supabase
       .from("buddy_posts")
       .select(
         `
@@ -27,8 +30,6 @@ export default function BuddyFinderPage() {
       )
       .eq("post_type", type)
       .order("created_at", { ascending: false });
-
-    const { data } = await query;
     setPosts(data || []);
   }
 
@@ -51,6 +52,35 @@ export default function BuddyFinderPage() {
     setLoading(true);
     await loadPosts(type);
     setLoading(false);
+  }
+
+  async function handleDelete(postId) {
+    setMenuOpenId(null);
+    const confirmed = window.confirm("Delete this post?");
+    if (!confirmed) return;
+    await supabase.from("buddy_posts").delete().eq("id", postId);
+    await loadPosts(postType);
+  }
+
+  function startEdit(post) {
+    setMenuOpenId(null);
+    setEditingPostId(post.id);
+    setEditText(post.message);
+  }
+
+  function cancelEdit() {
+    setEditingPostId(null);
+    setEditText("");
+  }
+
+  async function saveEdit(postId) {
+    await supabase
+      .from("buddy_posts")
+      .update({ message: editText })
+      .eq("id", postId);
+    setEditingPostId(null);
+    setEditText("");
+    await loadPosts(postType);
   }
 
   const filteredPosts = cityFilter
@@ -91,10 +121,10 @@ export default function BuddyFinderPage() {
             + Post a {postType === "training" ? "training" : "play"} request
           </button>
           <button
-            className="btn-secondary"
+            className="icon-btn"
             type="button"
             onClick={() => loadPosts(postType)}
-            style={{ flex: "0 0 auto", padding: "10px 16px" }}
+            title="Refresh"
           >
             ↻
           </button>
@@ -119,43 +149,119 @@ export default function BuddyFinderPage() {
             the first!
           </p>
         ) : (
-          filteredPosts.map((post) => (
-            <div className="buddy-card" key={post.id}>
-              {post.dogs?.photo_url && (
-                <img src={post.dogs.photo_url} alt={post.dogs.name} />
-              )}
-              <div className="buddy-card-body">
-                <div className="buddy-card-name">
-                  {post.dogs?.name || "A dog"} —{" "}
-                  {post.profiles?.display_name || "Someone"}
-                </div>
-                <div className="buddy-card-meta">
-                  {post.city}
-                  {post.dogs?.energy_level
-                    ? ` • ${post.dogs.energy_level} energy`
-                    : ""}
-                  {post.dogs?.recall_reliable !== undefined
-                    ? post.dogs.recall_reliable
-                      ? " • reliable recall"
-                      : " • stays on lead"
-                    : ""}
-                </div>
-                <div className="buddy-card-message">{post.message}</div>
-                {post.author_id !== userId && (
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    style={{ marginTop: 8, padding: "6px 14px", fontSize: 13 }}
-                    onClick={() =>
-                      router.push(`/start-conversation/${post.author_id}`)
-                    }
-                  >
-                    Message
-                  </button>
+          filteredPosts.map((post) => {
+            const isMine = post.author_id === userId;
+            return (
+              <div className="buddy-card" key={post.id}>
+                {post.dogs?.photo_url && (
+                  <img src={post.dogs.photo_url} alt={post.dogs.name} />
                 )}
+                <div className="buddy-card-body" style={{ flex: 1 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                    }}
+                  >
+                    <div className="buddy-card-name">
+                      {post.dogs?.name || "A dog"} —{" "}
+                      {post.profiles?.display_name || "Someone"}
+                    </div>
+                    {isMine && (
+                      <div className="post-menu-wrap">
+                        <button
+                          type="button"
+                          className="post-menu-btn"
+                          onClick={() =>
+                            setMenuOpenId(
+                              menuOpenId === post.id ? null : post.id
+                            )
+                          }
+                        >
+                          ⋮
+                        </button>
+                        {menuOpenId === post.id && (
+                          <div className="post-menu-dropdown">
+                            <button
+                              type="button"
+                              onClick={() => startEdit(post)}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(post.id)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div className="buddy-card-meta">
+                    {post.city}
+                    {post.dogs?.energy_level
+                      ? ` • ${post.dogs.energy_level} energy`
+                      : ""}
+                    {post.dogs?.recall_reliable !== undefined
+                      ? post.dogs.recall_reliable
+                        ? " • reliable recall"
+                        : " • stays on lead"
+                      : ""}
+                  </div>
+
+                  {editingPostId === post.id ? (
+                    <div className="field">
+                      <textarea
+                        rows={3}
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                      />
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button
+                          type="button"
+                          className="btn-primary"
+                          style={{ padding: "6px 14px", fontSize: 13 }}
+                          onClick={() => saveEdit(post.id)}
+                        >
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-secondary"
+                          style={{ padding: "6px 14px", fontSize: 13 }}
+                          onClick={cancelEdit}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="buddy-card-message">{post.message}</div>
+                  )}
+
+                  {!isMine && (
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{
+                        marginTop: 8,
+                        padding: "6px 14px",
+                        fontSize: 13,
+                      }}
+                      onClick={() =>
+                        router.push(`/start-conversation/${post.author_id}`)
+                      }
+                    >
+                      Message
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
 
         <div className="top-nav" style={{ marginTop: 20 }}>
