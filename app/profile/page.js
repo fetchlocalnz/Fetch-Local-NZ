@@ -51,8 +51,10 @@ export default function FeedPage() {
   return (
     <div className="auth-shell">
       <div className="auth-card">
-        <HamburgerMenu />
-        <Wordmark />
+        <div className="page-header">
+          <HamburgerMenu />
+          <Wordmark />
+        </div>
         {loading ? (
           <p>Loading your profile...</p>
         ) : (
