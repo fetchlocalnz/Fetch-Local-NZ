@@ -56,10 +56,6 @@ export default function FeedPage() {
     <div className="auth-shell">
       <div className="auth-card">
         <Wordmark />
-        <div className="top-nav">
-          <a href="/feed">Feed</a>
-          <a href="/profile">Your profile</a>
-        </div>
         {loading ? (
           <p>Loading your profile...</p>
         ) : (
@@ -113,13 +109,13 @@ export default function FeedPage() {
             >
               Edit your dogs / add photos
             </button>
-            <div className="helper-text">
-              This is a placeholder — the real social feed and buddy finder
-              get built next.
-            </div>
             <button className="btn-secondary" type="button" onClick={handleLogout}>
               Log out
             </button>
+            <div className="top-nav" style={{ marginTop: 20 }}>
+              <a href="/feed">Feed</a>
+              <a href="/profile">Your profile</a>
+            </div>
           </>
         )}
       </div>
