@@ -27,6 +27,14 @@ export default function FeedPage() {
         .eq("id", userData.user.id)
         .single();
 
+      // If there's no profile yet (e.g. they confirmed their email in a
+      // fresh browser session and never finished the signup form),
+      // send them to onboarding instead of showing an empty feed.
+      if (!profileData) {
+        router.push("/onboarding");
+        return;
+      }
+
       const { data: dogsData } = await supabase
         .from("dogs")
         .select("*")
