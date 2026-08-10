@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../lib/supabase-browser";
+import { normalizePhotoFile } from "../../lib/photo-helpers";
 import Wordmark from "../components/Wordmark";
 
 const FREE_DOG_LIMIT = 2;
@@ -26,12 +27,21 @@ export default function AddDogPage() {
   const [bio, setBio] = useState("");
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
+  const [convertingPhoto, setConvertingPhoto] = useState(false);
 
-  function handlePhotoChange(e) {
+  async function handlePhotoChange(e) {
     const file = e.target.files[0];
     if (!file) return;
-    setPhotoFile(file);
-    setPhotoPreview(URL.createObjectURL(file));
+
+    setConvertingPhoto(true);
+    try {
+      const normalized = await normalizePhotoFile(file);
+      setPhotoFile(normalized);
+      setPhotoPreview(URL.createObjectURL(normalized));
+    } catch (err) {
+      setError("Couldn't process that photo — try a different one.");
+    }
+    setConvertingPhoto(false);
   }
 
   useEffect(() => {
@@ -182,6 +192,9 @@ export default function AddDogPage() {
               accept="image/*"
               onChange={handlePhotoChange}
             />
+            {convertingPhoto && (
+              <div className="helper-text">Processing photo...</div>
+            )}
           </div>
           <div className="field">
             <label htmlFor="dogName">Dog's name</label>
