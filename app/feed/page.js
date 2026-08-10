@@ -12,13 +12,15 @@ export default function FeedPage() {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState(null);
   const [posts, setPosts] = useState([]);
+  const [editingPostId, setEditingPostId] = useState(null);
+  const [editText, setEditText] = useState("");
 
   async function loadPosts() {
     const { data } = await supabase
       .from("posts")
       .select(
         `
-        id, caption, photo_url, created_at,
+        id, caption, photo_url, created_at, author_id,
         profiles ( display_name, city ),
         dogs ( name ),
         likes ( user_id )
@@ -73,6 +75,33 @@ export default function FeedPage() {
     await loadPosts();
   }
 
+  async function handleDelete(postId) {
+    const confirmed = window.confirm("Delete this post?");
+    if (!confirmed) return;
+    await supabase.from("posts").delete().eq("id", postId);
+    await loadPosts();
+  }
+
+  function startEdit(post) {
+    setEditingPostId(post.id);
+    setEditText(post.caption || "");
+  }
+
+  function cancelEdit() {
+    setEditingPostId(null);
+    setEditText("");
+  }
+
+  async function saveEdit(postId) {
+    await supabase
+      .from("posts")
+      .update({ caption: editText })
+      .eq("id", postId);
+    setEditingPostId(null);
+    setEditText("");
+    await loadPosts();
+  }
+
   return (
     <div className="auth-shell">
       <div className="auth-card" style={{ maxWidth: 460 }}>
@@ -120,8 +149,35 @@ export default function FeedPage() {
                     className="post-photo"
                   />
                 )}
-                {post.caption && (
+                {post.caption && editingPostId !== post.id && (
                   <div className="post-caption">{post.caption}</div>
+                )}
+                {editingPostId === post.id && (
+                  <div className="field">
+                    <textarea
+                      rows={3}
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                    />
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button
+                        type="button"
+                        className="btn-primary"
+                        style={{ padding: "6px 14px", fontSize: 13 }}
+                        onClick={() => saveEdit(post.id)}
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        style={{ padding: "6px 14px", fontSize: 13 }}
+                        onClick={cancelEdit}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
                 )}
                 <button
                   type="button"
@@ -130,6 +186,34 @@ export default function FeedPage() {
                 >
                   🐾 {liked ? "Liked" : "Like"} ({post.likes.length})
                 </button>
+                {post.author_id === userId && editingPostId !== post.id && (
+                  <>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{
+                        marginLeft: 8,
+                        padding: "6px 14px",
+                        fontSize: 13,
+                      }}
+                      onClick={() => startEdit(post)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{
+                        marginLeft: 8,
+                        padding: "6px 14px",
+                        fontSize: 13,
+                      }}
+                      onClick={() => handleDelete(post.id)}
+                    >
+                      Delete
+                    </button>
+                  </>
+                )}
               </div>
             );
           })
