@@ -77,10 +77,6 @@ export default function FeedPage() {
     <div className="auth-shell">
       <div className="auth-card" style={{ maxWidth: 460 }}>
         <Wordmark />
-        <div className="top-nav">
-          <a href="/feed">Feed</a>
-          <a href="/profile">Your profile</a>
-        </div>
 
         <button
           className="btn-primary"
@@ -128,6 +124,11 @@ export default function FeedPage() {
             );
           })
         )}
+
+        <div className="top-nav" style={{ marginTop: 20 }}>
+          <a href="/feed">Feed</a>
+          <a href="/profile">Your profile</a>
+        </div>
       </div>
     </div>
   );
