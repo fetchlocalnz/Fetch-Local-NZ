@@ -97,9 +97,17 @@ export default function FeedPage() {
               className="btn-secondary"
               type="button"
               onClick={() => router.push("/add-dog")}
-              style={{ marginBottom: 12 }}
+              style={{ marginBottom: 10 }}
             >
               Add another dog
+            </button>
+            <button
+              className="btn-secondary"
+              type="button"
+              onClick={() => router.push("/manage-dogs")}
+              style={{ marginBottom: 12 }}
+            >
+              Edit your dogs / add photos
             </button>
             <div className="helper-text">
               This is a placeholder — the real social feed and buddy finder
