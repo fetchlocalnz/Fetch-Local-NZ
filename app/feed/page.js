@@ -107,8 +107,10 @@ export default function FeedPage() {
   return (
     <div className="auth-shell">
       <div className="auth-card" style={{ maxWidth: 460 }}>
-        <HamburgerMenu />
-        <Wordmark />
+        <div className="page-header">
+          <HamburgerMenu />
+          <Wordmark />
+        </div>
 
         <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
           <button
