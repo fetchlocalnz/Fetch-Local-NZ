@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../lib/supabase-browser";
 import Wordmark from "../components/Wordmark";
+import HamburgerMenu from "../components/HamburgerMenu";
 
 export default function FeedPage() {
   const router = useRouter();
@@ -47,14 +48,10 @@ export default function FeedPage() {
     load();
   }, []);
 
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    router.push("/login");
-  }
-
   return (
     <div className="auth-shell">
       <div className="auth-card">
+        <HamburgerMenu />
         <Wordmark />
         {loading ? (
           <p>Loading your profile...</p>
@@ -109,14 +106,10 @@ export default function FeedPage() {
             >
               Edit your dogs / add photos
             </button>
-            <button className="btn-secondary" type="button" onClick={handleLogout}>
-              Log out
-            </button>
             <div className="top-nav" style={{ marginTop: 20 }}>
               <a href="/feed">Feed</a>
               <a href="/buddy-finder">Buddy Finder</a>
               <a href="/messages">Messages</a>
-              <a href="/profile">Your profile</a>
             </div>
           </>
         )}
