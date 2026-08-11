@@ -51,12 +51,12 @@ export default function ShopPage() {
     init();
   }, []);
 
-  function handleMessageSeller(sellerId) {
+  function handleMessageSeller(sellerId, itemId) {
     if (!isPremium) {
       router.push("/upgrade");
       return;
     }
-    router.push(`/start-conversation/${sellerId}`);
+    router.push(`/start-conversation/${sellerId}?shopItemId=${itemId}`);
   }
 
   function handlePostItem() {
@@ -186,7 +186,7 @@ export default function ShopPage() {
                     type="button"
                     className="btn-secondary"
                     style={{ padding: "6px 14px", fontSize: 13 }}
-                    onClick={() => handleMessageSeller(item.seller_id)}
+                    onClick={() => handleMessageSeller(item.seller_id, item.id)}
                   >
                     Message seller
                   </button>
