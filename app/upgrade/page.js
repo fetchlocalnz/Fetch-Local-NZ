@@ -21,7 +21,7 @@ export default function UpgradePage() {
         <button
           className="btn-secondary"
           type="button"
-          onClick={() => router.push("/feed")}
+          onClick={() => router.push("/profile")}
         >
           Back to profile
         </button>
