@@ -201,6 +201,58 @@ a {
   border-radius: 20px 20px 0 0;
 }
 
+.shop-card {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 16px;
+  background: var(--card);
+}
+
+.shop-card img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+.shop-card-title {
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 2px;
+}
+
+.shop-card-price {
+  color: var(--terracotta-deep);
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+
+.shop-card-seller {
+  font-size: 12px;
+  color: var(--navy);
+  opacity: 0.8;
+  margin-bottom: 8px;
+}
+
+.shop-card-desc {
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.sold-badge {
+  display: inline-block;
+  background: var(--navy);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+}
+
 .top-nav a {
   flex: 1;
   text-align: center;
