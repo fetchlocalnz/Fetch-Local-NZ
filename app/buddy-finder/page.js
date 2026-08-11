@@ -256,7 +256,9 @@ export default function BuddyFinderPage() {
                         fontSize: 13,
                       }}
                       onClick={() =>
-                        router.push(`/start-conversation/${post.author_id}`)
+                        router.push(
+                          `/start-conversation/${post.author_id}?buddyPostId=${post.id}`
+                        )
                       }
                     >
                       Message
