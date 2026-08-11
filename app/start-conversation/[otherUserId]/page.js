@@ -1,14 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { createClient } from "../../../lib/supabase-browser";
 import Wordmark from "../../components/Wordmark";
 
 export default function StartConversationPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const otherUserId = params.otherUserId;
+  const shopItemId = searchParams.get("shopItemId");
+  const buddyPostId = searchParams.get("buddyPostId");
   const supabase = createClient();
 
   const [userId, setUserId] = useState(null);
@@ -27,14 +30,24 @@ export default function StartConversationPage() {
       )
       .maybeSingle();
 
+    const contextUpdate = {};
+    if (shopItemId) contextUpdate.shop_item_id = shopItemId;
+    if (buddyPostId) contextUpdate.buddy_post_id = buddyPostId;
+
     if (existing) {
+      if (Object.keys(contextUpdate).length > 0) {
+        await supabase
+          .from("conversations")
+          .update(contextUpdate)
+          .eq("id", existing.id);
+      }
       router.push(`/messages/${existing.id}`);
       return;
     }
 
     const { data: created, error: createError } = await supabase
       .from("conversations")
-      .insert({ user_one: uid, user_two: otherUserId })
+      .insert({ user_one: uid, user_two: otherUserId, ...contextUpdate })
       .select("id")
       .single();
 
