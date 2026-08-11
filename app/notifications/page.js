@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../lib/supabase-browser";
 import Wordmark from "../components/Wordmark";
+import HamburgerMenu from "../components/HamburgerMenu";
 
 function timeAgo(dateStr) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -107,7 +108,10 @@ export default function NotificationsPage() {
   return (
     <div className="auth-shell">
       <div className="auth-card" style={{ maxWidth: 460 }}>
-        <Wordmark />
+        <div className="page-header">
+          <HamburgerMenu />
+          <Wordmark />
+        </div>
 
         {loading ? (
           <p>Loading notifications...</p>
@@ -129,7 +133,6 @@ export default function NotificationsPage() {
           <a href="/feed">Feed</a>
           <a href="/buddy-finder">Buddy Finder</a>
           <a href="/messages">Messages</a>
-          <a href="/profile">Your profile</a>
         </div>
       </div>
     </div>
