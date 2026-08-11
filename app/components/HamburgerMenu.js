@@ -44,12 +44,18 @@ export default function HamburgerMenu() {
         unreadLikes = count || 0;
       }
 
-      // Unread messages sent to me
+      // Unread messages sent to me (skip conversations I've hidden
+      // from my own inbox — those shouldn't light up the badge)
       const { data: convos } = await supabase
         .from("conversations")
-        .select("id")
+        .select("id, user_one, user_two, hidden_by_user_one, hidden_by_user_two")
         .or(`user_one.eq.${uid},user_two.eq.${uid}`);
-      const convoIds = (convos || []).map((c) => c.id);
+      const convoIds = (convos || [])
+        .filter((c) => {
+          const isUserOne = c.user_one === uid;
+          return isUserOne ? !c.hidden_by_user_one : !c.hidden_by_user_two;
+        })
+        .map((c) => c.id);
 
       let unreadMessages = 0;
       if (convoIds.length > 0) {
