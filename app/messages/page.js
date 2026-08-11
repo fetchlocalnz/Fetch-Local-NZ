@@ -24,7 +24,13 @@ export default function MessagesPage() {
 
       const { data: convos } = await supabase
         .from("conversations")
-        .select("id, user_one, user_two")
+        .select(
+          `
+          id, user_one, user_two,
+          shop_items ( title ),
+          buddy_posts ( post_type, dogs ( name ) )
+        `
+        )
         .or(`user_one.eq.${userId},user_two.eq.${userId}`)
         .order("created_at", { ascending: false });
 
@@ -37,9 +43,19 @@ export default function MessagesPage() {
             .select("display_name")
             .eq("id", otherId)
             .single();
+
+          let contextLabel = null;
+          if (c.shop_items?.title) {
+            contextLabel = `🛍️ ${c.shop_items.title}`;
+          } else if (c.buddy_posts?.dogs?.name) {
+            const kind = c.buddy_posts.post_type === "training" ? "Training" : "Play";
+            contextLabel = `🐾 ${c.buddy_posts.dogs.name} — ${kind}`;
+          }
+
           return {
             ...c,
             otherName: otherProfile?.display_name || "Someone",
+            contextLabel,
           };
         })
       );
@@ -72,6 +88,18 @@ export default function MessagesPage() {
               className="conversation-row"
               href={`/messages/${c.id}`}
             >
+              {c.contextLabel && (
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 400,
+                    opacity: 0.75,
+                    marginBottom: 2,
+                  }}
+                >
+                  {c.contextLabel}
+                </div>
+              )}
               {c.otherName}
             </a>
           ))
