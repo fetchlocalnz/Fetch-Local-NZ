@@ -11,6 +11,7 @@ export default function MessagesPage() {
   const supabase = createClient();
 
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState(null);
   const [conversations, setConversations] = useState([]);
 
   useEffect(() => {
@@ -20,24 +21,31 @@ export default function MessagesPage() {
         router.push("/login");
         return;
       }
-      const userId = userData.user.id;
+      const uid = userData.user.id;
+      setUserId(uid);
 
       const { data: convos } = await supabase
         .from("conversations")
         .select(
           `
-          id, user_one, user_two,
+          id, user_one, user_two, hidden_by_user_one, hidden_by_user_two,
           shop_items ( title ),
           buddy_posts ( post_type, dogs ( name ) )
         `
         )
-        .or(`user_one.eq.${userId},user_two.eq.${userId}`)
+        .or(`user_one.eq.${uid},user_two.eq.${uid}`)
         .order("created_at", { ascending: false });
+
+      // Skip conversations this person has hidden from their own inbox.
+      const visible = (convos || []).filter((c) => {
+        const isUserOne = c.user_one === uid;
+        return isUserOne ? !c.hidden_by_user_one : !c.hidden_by_user_two;
+      });
 
       // Fetch the other participant's name for each conversation.
       const withNames = await Promise.all(
-        (convos || []).map(async (c) => {
-          const otherId = c.user_one === userId ? c.user_two : c.user_one;
+        visible.map(async (c) => {
+          const otherId = c.user_one === uid ? c.user_two : c.user_one;
           const { data: otherProfile } = await supabase
             .from("profiles")
             .select("display_name")
@@ -66,6 +74,23 @@ export default function MessagesPage() {
     init();
   }, []);
 
+  async function handleHide(convo) {
+    const confirmed = window.confirm(
+      "Remove this conversation from your inbox? The other person will still see it."
+    );
+    if (!confirmed) return;
+
+    const isUserOne = convo.user_one === userId;
+    const field = isUserOne ? "hidden_by_user_one" : "hidden_by_user_two";
+
+    await supabase
+      .from("conversations")
+      .update({ [field]: true })
+      .eq("id", convo.id);
+
+    setConversations((prev) => prev.filter((c) => c.id !== convo.id));
+  }
+
   return (
     <div className="auth-shell">
       <div className="auth-card" style={{ maxWidth: 460 }}>
@@ -83,25 +108,44 @@ export default function MessagesPage() {
           </p>
         ) : (
           conversations.map((c) => (
-            <a
+            <div
               key={c.id}
               className="conversation-row"
-              href={`/messages/${c.id}`}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                cursor: "pointer",
+              }}
+              onClick={() => router.push(`/messages/${c.id}`)}
             >
-              {c.contextLabel && (
-                <div
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 400,
-                    opacity: 0.75,
-                    marginBottom: 2,
-                  }}
-                >
-                  {c.contextLabel}
-                </div>
-              )}
-              {c.otherName}
-            </a>
+              <div>
+                {c.contextLabel && (
+                  <div
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 400,
+                      opacity: 0.75,
+                      marginBottom: 2,
+                    }}
+                  >
+                    {c.contextLabel}
+                  </div>
+                )}
+                {c.otherName}
+              </div>
+              <button
+                type="button"
+                className="post-menu-btn"
+                title="Remove from inbox"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleHide(c);
+                }}
+              >
+                ✕
+              </button>
+            </div>
           ))
         )}
 
