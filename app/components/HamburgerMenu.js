@@ -112,6 +112,13 @@ export default function HamburgerMenu() {
             >
               Notifications {hasUnread && "🐾"}
             </a>
+            <a
+              href="/shop"
+              className="hamburger-link"
+              onClick={() => setOpen(false)}
+            >
+              Shop
+            </a>
 
             <div className="hamburger-spacer" />
 
