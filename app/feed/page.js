@@ -51,6 +51,11 @@ export default function FeedPage() {
         return;
       }
 
+      if (!profileData.accepted_terms) {
+        router.push("/terms");
+        return;
+      }
+
       setUserId(userData.user.id);
       await loadPosts();
       setLoading(false);
