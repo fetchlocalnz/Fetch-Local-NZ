@@ -67,6 +67,9 @@ export default function LoginPage() {
           </button>
         </form>
         <div className="switch-line">
+          <a href="/forgot-password">Forgot your password?</a>
+        </div>
+        <div className="switch-line">
           New to Fetch Local? <a href="/signup">Create an account</a>
         </div>
       </div>
