@@ -33,6 +33,16 @@ export default function NotificationsPage() {
       }
       const uid = userData.user.id;
 
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("accepted_terms")
+        .eq("id", uid)
+        .single();
+      if (!profileData?.accepted_terms) {
+        router.push("/terms");
+        return;
+      }
+
       // Likes on my posts
       const { data: myPosts } = await supabase
         .from("posts")
