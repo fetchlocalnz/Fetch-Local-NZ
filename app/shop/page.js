@@ -40,9 +40,15 @@ export default function ShopPage() {
 
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("is_premium")
+        .select("is_premium, accepted_terms")
         .eq("id", userData.user.id)
         .single();
+
+      if (!profileData?.accepted_terms) {
+        router.push("/terms");
+        return;
+      }
+
       setIsPremium(profileData?.is_premium || false);
 
       await loadItems();
