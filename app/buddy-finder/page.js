@@ -42,6 +42,17 @@ export default function BuddyFinderPage() {
         return;
       }
       setUserId(userData.user.id);
+
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("accepted_terms")
+        .eq("id", userData.user.id)
+        .single();
+      if (!profileData?.accepted_terms) {
+        router.push("/terms");
+        return;
+      }
+
       await loadPosts(postType);
       setLoading(false);
     }
