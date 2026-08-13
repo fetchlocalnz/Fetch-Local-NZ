@@ -24,6 +24,16 @@ export default function MessagesPage() {
       const uid = userData.user.id;
       setUserId(uid);
 
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("accepted_terms")
+        .eq("id", uid)
+        .single();
+      if (!profileData?.accepted_terms) {
+        router.push("/terms");
+        return;
+      }
+
       const { data: convos } = await supabase
         .from("conversations")
         .select(
