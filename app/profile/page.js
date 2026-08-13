@@ -36,6 +36,11 @@ export default function FeedPage() {
         return;
       }
 
+      if (!profileData.accepted_terms) {
+        router.push("/terms");
+        return;
+      }
+
       const { data: dogsData } = await supabase
         .from("dogs")
         .select("*")
